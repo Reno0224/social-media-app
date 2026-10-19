@@ -20,14 +20,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FormInput } from "./form-input";
+import { cn } from "@/lib/utils";
 
+interface EditProfileFormProps {
+  profile: Profile;
+  onDone: () => void;
+  className?: string; // <form>
+  inputClassName?: string; // semua Input dan Textarea
+  submitClassName?: string; // tombol simpan
+}
 function EditProfileForm({
   profile,
   onDone,
-}: {
-  profile: Profile;
-  onDone: () => void;
-}) {
+  className,
+  inputClassName,
+  submitClassName,
+}: EditProfileFormProps) {
   const form = useForm<UpdateProfileInput>({
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
@@ -77,24 +85,55 @@ function EditProfileForm({
   );
 }
 
-export function EditProfileDialog({ profile }: { profile: Profile }) {
+interface EditProfileDialogProps {
+  profile: Profile;
+  className?: string;
+  contentClassName?: string;
+  formClassName?: string;
+  inputClassName?: string;
+  submitClassName?: string;
+}
+
+export function EditProfileDialog({
+  profile,
+  className,
+  contentClassName,
+  formClassName,
+  inputClassName,
+  submitClassName,
+}: EditProfileDialogProps) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <Button
+        type="button"
         variant="outline"
-        className="rounded-full"
+        className={cn("rounded-full", className)}
         onClick={() => setOpen(true)}
       >
-        Edit profile
+        Edit Profile
       </Button>
+
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[440px]">
+        <DialogContent
+          className={cn(
+            "gap-3xl rounded-2xl border-neutral-800 bg-neutral-950 p-3xl sm:max-w-[440px]",
+            contentClassName,
+          )}
+        >
           <DialogHeader>
-            <DialogTitle>Edit profile</DialogTitle>
+            <DialogTitle className="text-lg font-bold">
+              Edit Profile
+            </DialogTitle>
           </DialogHeader>
-          <EditProfileForm profile={profile} onDone={() => setOpen(false)} />
+          <EditProfileForm
+            profile={profile}
+            onDone={() => setOpen(false)}
+            className={formClassName}
+            inputClassName={inputClassName}
+            submitClassName={submitClassName}
+          />
         </DialogContent>
       </Dialog>
     </>

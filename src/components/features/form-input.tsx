@@ -16,6 +16,7 @@ interface FormInputProps<T extends FieldValues> {
   placeholder?: string;
   autoComplete?: string;
   className?: string;
+  inputClassName?: string;
 }
 
 export function FormInput<T extends FieldValues>({
