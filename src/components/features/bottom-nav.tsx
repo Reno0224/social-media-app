@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { House, Plus, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface BottomNavProps {
   onCreate?: () => void;
@@ -17,7 +18,7 @@ export function BottomNav({ onCreate }: BottomNavProps) {
   return (
     <nav
       aria-label="Main"
-      className="fixed bottom-6 left-1/2 z-50 flex h-20 w-[360px] max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center justify-between rounded-full border border-neutral-800 bg-neutral-950/90 px-4xl backdrop-blur-md sm:bottom-8"
+      className="fixed bottom-6 left-1/2 z-50 flex h-20 w-[360px] max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center justify-between rounded-full border border-neutral-900 bg-neutral-950 px-4xl"
     >
       <Link
         href="/feed"

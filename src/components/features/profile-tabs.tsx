@@ -38,6 +38,7 @@ export function ProfileTabs({ tabs }: { tabs: TabItem[] }) {
               )}
             >
               <Icon className={cn("size-5", selected && "fill-current")} />
+              <span>{label}</span>
             </button>
           );
         })}

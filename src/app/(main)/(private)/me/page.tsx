@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/features/states";
 import { ProfileHeader } from "@/components/features/profile-header";
 import { ProfileTabs } from "@/components/features/profile-tabs";
+import { UserPostsGrid } from "@/components/features/post-grid";
 
 export default function MePage() {
   const { data, isLoading, isError, error, refetch } = useMe();
@@ -28,9 +29,11 @@ export default function MePage() {
     return <ErrorState message={error?.message} onRetry={() => refetch()} />;
   }
 
+  const { profile, stats } = data;
+
   return (
     <div className="mx-auto w-full max-w-[812px] space-y-3xl md:pt-xl">
-      <ProfileHeader profile={data.profile} stats={data.stats} />
+      <ProfileHeader profile={profile} stats={stats} />
 
       <ProfileTabs
         tabs={[
@@ -39,17 +42,24 @@ export default function MePage() {
             label: "Gallery",
             icon: LayoutGrid,
             content: (
-              <EmptyState
-                className="py-35"
-                title="Your story starts here"
-                description="Share your first post and let the world see your moments, passions, and memories. Make this space truly yours."
-                action={
-                  <Button
-                    className="mt-xl h-10 w-64.75 rounded-full bg-primary-300 text-md font-semibold text-white hover:bg-primary-200 md:h-12"
-                    onClick={() => toast.info("Create post comes in a later step")}
-                  >
-                    Upload My First Post
-                  </Button>
+              <UserPostsGrid
+                username={profile.username}
+                emptyState={
+                  <EmptyState
+                    className="py-35"
+                    title="Your story starts here"
+                    description="Share your first post and let the world see your moments, passions, and memories. Make this space truly yours."
+                    action={
+                      <Button
+                        className="mt-xl h-10 w-64.75 rounded-full bg-primary-300 text-md font-semibold text-white hover:bg-primary-200 md:h-12"
+                        onClick={() =>
+                          toast.info("Create post comes in a later step")
+                        }
+                      >
+                        Upload My First Post
+                      </Button>
+                    }
+                  />
                 }
               />
             ),

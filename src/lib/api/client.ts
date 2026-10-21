@@ -33,7 +33,7 @@ export async function api<T>(
   const json = (await res.json().catch(() => null)) as ApiResponse<T> | null;
 
   if (!res.ok || json?.success === false) {
-    throw new ApiError(json?.message ?? "Terjadi kesalahan", res.status);
+    throw new ApiError(json?.message ?? "Something went Wrong", res.status);
   }
 
   return json!.data;
