@@ -3,14 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "node api.js && next dev",
+    "build": "node api.js && next build",
+    "start": "node api.js && next start",
     "lint": "eslint"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
     "@hookform/resolvers": "^5.9.1",
+    "@iconify/react": "^6.0.3",
     "@reduxjs/toolkit": "^2.13.0",
     "@tanstack/react-query": "^5.104.3",
     "class-variance-authority": "^0.7.1",

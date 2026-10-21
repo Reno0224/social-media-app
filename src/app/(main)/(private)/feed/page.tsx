@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useInfiniteFeed, useToggleLike, flattenPosts } from "@/hooks/use-post";
+import {
+  flattenPosts,
+  useInfiniteFeed,
+  useSavedIds,
+  useToggleLike,
+  useToggleSave,
+} from "@/hooks/use-post";
 import { useLoadMore } from "@/hooks/use-load-more";
 import { buttonVariants } from "@/components/ui/button";
 import { PostCard } from "@/components/features/post-card";
@@ -13,12 +19,14 @@ import {
 
 export default function FeedPage() {
   const feed = useInfiniteFeed();
-  const { toggle } = useToggleLike();
+  const { toggle: toggleLike } = useToggleLike();
+  const { toggle: toggleSave } = useToggleSave();
+  const { savedIds } = useSavedIds();
   const posts = flattenPosts(feed.data);
 
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = feed;
   const sentinelRef = useLoadMore(
-    fetchNextPage,
+    () => fetchNextPage(),
     !!hasNextPage && !isFetchingNextPage,
   );
 
@@ -61,7 +69,9 @@ export default function FeedPage() {
           key={post.id}
           post={post}
           priority={i === 0}
-          onToggleLike={toggle}
+          isSaved={savedIds.has(post.id)}
+          onToggleLike={toggleLike}
+          onToggleSave={(p) => toggleSave(p.id, savedIds.has(p.id))}
         />
       ))}
 
