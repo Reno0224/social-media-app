@@ -3,48 +3,52 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useUserPosts, flattenPosts } from "@/hooks/use-post";
+import { flattenPosts, useSavedPosts, useUserPosts } from "@/hooks/use-post";
 import { useLoadMore } from "@/hooks/use-load-more";
 import { ErrorState } from "./states";
 
-export function UserPostsGrid({
-  username,
-  emptyState,
-}: {
-  username: string;
+interface GridItem {
+  id: number;
+  imageUrl: string | null;
+  caption: string;
+}
+
+interface ImageGridProps {
+  posts: GridItem[];
+  isLoading: boolean;
+  isError: boolean;
+  errorMessage?: string;
+  onRetry: () => void;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  fetchNextPage: () => void;
   emptyState: React.ReactNode;
-}) {
-  const query = useUserPosts(username);
-  const posts = flattenPosts(query.data);
+}
 
-  const { fetchNextPage, hasNextPage, isFetchingNextPage } = query;
-  const sentinelRef = useLoadMore(
-    fetchNextPage,
-    !!hasNextPage && !isFetchingNextPage,
-  );
+function ImageGrid({
+  posts,
+  isLoading,
+  isError,
+  errorMessage,
+  onRetry,
+  hasNextPage,
+  isFetchingNextPage,
+  fetchNextPage,
+  emptyState,
+}: ImageGridProps) {
+  const sentinelRef = useLoadMore(fetchNextPage, hasNextPage && !isFetchingNextPage);
 
-  if (query.isLoading) {
+  if (isLoading) {
     return (
       <div className="grid grid-cols-3 gap-1">
         {Array.from({ length: 9 }).map((_, i) => (
-          <div
-            key={i}
-            className="aspect-square animate-pulse rounded-md bg-neutral-800"
-          />
+          <div key={i} className="aspect-square animate-pulse rounded-md bg-neutral-800" />
         ))}
       </div>
     );
   }
 
-  if (query.isError) {
-    return (
-      <ErrorState
-        message={query.error.message}
-        onRetry={() => query.refetch()}
-      />
-    );
-  }
-
+  if (isError) return <ErrorState message={errorMessage} onRetry={onRetry} />;
   if (posts.length === 0) return <>{emptyState}</>;
 
   return (
@@ -69,7 +73,54 @@ export function UserPostsGrid({
           </Link>
         ))}
       </div>
+      {isFetchingNextPage && (
+        <div className="mt-1 grid grid-cols-3 gap-1">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="aspect-square animate-pulse rounded-md bg-neutral-800" />
+          ))}
+        </div>
+      )}
       <div ref={sentinelRef} className="h-px" />
     </>
+  );
+}
+
+export function UserPostsGrid({
+  username,
+  emptyState,
+}: {
+  username: string;
+  emptyState: React.ReactNode;
+}) {
+  const query = useUserPosts(username);
+  return (
+    <ImageGrid
+      posts={flattenPosts(query.data)}
+      isLoading={query.isLoading}
+      isError={query.isError}
+      errorMessage={query.error?.message}
+      onRetry={() => query.refetch()}
+      hasNextPage={!!query.hasNextPage}
+      isFetchingNextPage={query.isFetchingNextPage}
+      fetchNextPage={() => query.fetchNextPage()}
+      emptyState={emptyState}
+    />
+  );
+}
+
+export function SavedPostsGrid({ emptyState }: { emptyState: React.ReactNode }) {
+  const query = useSavedPosts();
+  return (
+    <ImageGrid
+      posts={flattenPosts(query.data)}
+      isLoading={query.isLoading}
+      isError={query.isError}
+      errorMessage={query.error?.message}
+      onRetry={() => query.refetch()}
+      hasNextPage={!!query.hasNextPage}
+      isFetchingNextPage={query.isFetchingNextPage}
+      fetchNextPage={() => query.fetchNextPage()}
+      emptyState={emptyState}
+    />
   );
 }

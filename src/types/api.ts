@@ -72,3 +72,15 @@ export interface PostsPage {
   posts: Post[];
   pagination: Pagination;
 }
+
+export interface SavedPost {
+  id: number;
+  imageUrl: string | null;
+  caption: string;
+  createdAt: string;
+}
+
+export interface SavedPage {
+  posts: SavedPost[];
+  pagination: Pagination;
+}

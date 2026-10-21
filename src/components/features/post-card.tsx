@@ -4,12 +4,13 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Bookmark, Heart, MessageSquareMore, Send } from "lucide-react";
+// import { Bookmark, Heart, MessageSquareMore, Send } from "lucide-react";
 import { toast } from "sonner";
 import { timeAgo } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import type { Post } from "@/types/api";
 import { UserAvatar } from "./user-avatar";
+import { Icon } from "@iconify/react";
 
 interface PostCardProps {
   post: Post;
@@ -32,7 +33,9 @@ export function PostCard({
 
   async function handleShare() {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/posts/${post.id}`);
+      await navigator.clipboard.writeText(
+        `${window.location.origin}/posts/${post.id}`,
+      );
       toast.success("Link copied");
     } catch {
       toast.error("Could not copy link");
@@ -42,7 +45,10 @@ export function PostCard({
   return (
     <article className="border-b border-neutral-900 pb-xl">
       <header className="flex items-center gap-lg pb-lg pt-xl">
-        <Link href={profileHref} aria-label={`Open ${post.author.username}'s profile`}>
+        <Link
+          href={profileHref}
+          aria-label={`Open ${post.author.username}'s profile`}
+        >
           <UserAvatar
             name={post.author.name}
             avatarUrl={post.author.avatarUrl}
@@ -50,10 +56,17 @@ export function PostCard({
           />
         </Link>
         <div className="min-w-0">
-          <Link href={profileHref} className="block truncate text-md font-semibold">
+          <Link
+            href={profileHref}
+            className="block truncate text-md font-semibold"
+          >
             {post.author.username}
           </Link>
-          <time dateTime={post.createdAt} suppressHydrationWarning className="text-sm text-neutral-400">
+          <time
+            dateTime={post.createdAt}
+            suppressHydrationWarning
+            className="text-sm text-neutral-400"
+          >
             {timeAgo(post.createdAt)}
           </time>
         </div>
@@ -84,17 +97,31 @@ export function PostCard({
           aria-label={post.likedByMe ? "Unlike post" : "Like post"}
           className="flex cursor-pointer items-center gap-md"
         >
-          <Heart className={cn("size-6", post.likedByMe && "fill-accent-red text-accent-red")} />
+          <Icon
+            icon={post.likedByMe ? "basil:heart-solid" : "basil-heart-outline"}
+            width={24}
+            height={24}
+            className={cn(post.likedByMe && "fill-accent-red text-accent-red")}
+          />
           <span className="text-md font-medium">{post.likeCount}</span>
         </button>
 
-        <Link href={`/posts/${post.id}`} aria-label="View comments" className="flex items-center gap-md">
-          <MessageSquareMore className="size-6" />
+        <Link
+          href={`/posts/${post.id}`}
+          aria-label="View comments"
+          className="flex items-center gap-md"
+        >
+          <Icon icon="mage:message-dots" width={24} height={24} />
           <span className="text-md font-medium">{post.commentCount}</span>
         </Link>
 
-        <button type="button" onClick={handleShare} aria-label="Copy post link" className="cursor-pointer">
-          <Send className="size-6" />
+        <button
+          type="button"
+          onClick={handleShare}
+          aria-label="Copy post link"
+          className="cursor-pointer"
+        >
+          <Icon icon="reicon:plane" width={24} height={24} />
         </button>
 
         <button
@@ -105,7 +132,12 @@ export function PostCard({
           aria-label={isSaved ? "Unsave post" : "Save post"}
           className="ml-auto cursor-pointer disabled:cursor-default"
         >
-          <Bookmark className={cn("size-6", isSaved && "fill-current")} />
+          <Icon
+            icon="garden:bookmark-stroke-20"
+            width={24}
+            height={24}
+            className={cn(isSaved && "fill-current")}
+          />
         </button>
       </div>
 
@@ -113,7 +145,9 @@ export function PostCard({
         <Link href={profileHref} className="block text-md font-semibold">
           {post.author.username}
         </Link>
-        <p className={cn("text-md", !expanded && "line-clamp-2")}>{post.caption}</p>
+        <p className={cn("text-md", !expanded && "line-clamp-2")}>
+          {post.caption}
+        </p>
         {isLong && (
           <button
             type="button"
