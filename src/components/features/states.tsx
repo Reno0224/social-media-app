@@ -41,7 +41,7 @@ export function ErrorState({
     >
       <p className="text-sm text-muted-foreground">{message}</p>
       {onRetry && (
-        <Button variant="outline" className="rounded-full" onClick={onRetry}>
+        <Button variant="outline" className="rounded-full border-neutral-800 bg-transparent text-neutral-50 hover:bg-neutral-900 dark:bg-transparent" onClick={onRetry}>
           Try again
         </Button>
       )}

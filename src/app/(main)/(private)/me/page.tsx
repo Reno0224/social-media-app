@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/features/states";
 import { ProfileHeader } from "@/components/features/profile-header";
 import { ProfileTabs } from "@/components/features/profile-tabs";
-import { UserPostsGrid } from "@/components/features/post-grid";
+import { UserPostsGrid, SavedPostsGrid } from "@/components/features/post-grid";
 
 export default function MePage() {
   const { data, isLoading, isError, error, refetch } = useMe();
@@ -69,10 +69,14 @@ export default function MePage() {
             label: "Saved",
             icon: Bookmark,
             content: (
-              <EmptyState
-                className="py-35"
-                title="No saved posts yet"
-                description="Posts you save will show up here."
+              <SavedPostsGrid
+                emptyState={
+                  <EmptyState
+                    className="py-35"
+                    title="No saved posts yet"
+                    description="Posts you save will show up here."
+                  />
+                }
               />
             ),
           },

@@ -1,0 +1,18 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "feature-reno",
+    "main",
+    "origin"
+  ],
+  "parent": {
+    "feature-reno": "main",
+    "main": null,
+    "origin": "main"
+  },
+  "order": [
+    "main",
+    "feature-reno",
+    "origin"
+  ]
+}
