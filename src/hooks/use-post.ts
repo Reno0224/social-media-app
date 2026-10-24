@@ -86,20 +86,24 @@ export function useSavedIds() {
 }
 
 /** Ubah satu post di SEMUA daftar yang ada di cache (feed, gallery, dst). */
-function patchPost(qc: QueryClient, id: number, fn: (p: Post) => Post) {
-  qc.setQueriesData<InfiniteData<PostsPage>>(
-    { queryKey: queryKeys.posts },
-    (old) => {
-      if (!old?.pages) return old; // lewati cache yang bukan daftar
+export function patchPost(qc: QueryClient, id: number, fn: (p: Post) => Post) {
+  qc.setQueriesData({ queryKey: queryKeys.posts }, (old: unknown) => {
+    if (!old || typeof old !== "object") return old;
+
+    if ("pages" in old) {
+      const data = old as InfiniteData<PostsPage>;
       return {
-        ...old,
-        pages: old.pages.map((page) => ({
+        ...data,
+        pages: data.pages.map((page) => ({
           ...page,
           posts: (page.posts ?? []).map((p) => (p.id === id ? fn(p) : p)),
         })),
       };
-    },
-  );
+    }
+
+    if ("id" in old && (old as Post).id === id) return fn(old as Post);
+    return old;
+  });
 }
 
 export function useToggleLike() {
@@ -112,9 +116,7 @@ export function useToggleLike() {
 
     onMutate: async ({ id, like }) => {
       await qc.cancelQueries({ queryKey: queryKeys.posts });
-      const snapshot = qc.getQueriesData<InfiniteData<PostsPage>>({
-        queryKey: queryKeys.posts,
-      });
+      const snapshot = qc.getQueriesData({ queryKey: queryKeys.posts });
       // Tetapkan nilai, bukan sekadar menambah angka: aman kalau terpanggil dua kali.
       patchPost(qc, id, (p) =>
         p.likedByMe === like
@@ -140,7 +142,7 @@ export function useToggleLike() {
   });
 
   function toggle(post: Post) {
-    if (inFlight.current.has(post.id)) return; // abaikan klik beruntun pada post yang sama
+    if (inFlight.current.has(post.id)) return;
     inFlight.current.add(post.id);
     mutation.mutate({ id: post.id, like: !post.likedByMe });
   }
@@ -185,4 +187,110 @@ export function useToggleSave() {
   }
 
   return { toggle };
+}
+
+export function usePost(id: number) {
+  return useQuery({
+    queryKey: queryKeys.postDetail(id),
+    queryFn: () => postsApi.get(id),
+    enabled: Number.isInteger(id) && id > 0,
+  });
+}
+
+/** Buang satu post dari SEMUA daftar di cache (feed, gallery, dst). */
+export function removePostFromLists(qc: QueryClient, id: number) {
+  qc.setQueriesData({ queryKey: queryKeys.posts }, (old: unknown) => {
+    if (!old || typeof old !== "object" || !("pages" in old)) return old;
+    const data = old as InfiniteData<PostsPage>;
+    return {
+      ...data,
+      pages: data.pages.map((page) => ({
+        ...page,
+        posts: (page.posts ?? []).filter((p) => p.id !== id),
+        pagination: {
+          ...page.pagination,
+          total: Math.max(0, page.pagination.total - 1),
+        },
+      })),
+    };
+  });
+}
+
+export function useCreatePost() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ file, caption }: { file: File; caption: string }) =>
+      postsApi.create(file, caption),
+    onSuccess: () => {
+      toast.success("Post shared");
+      // post baru muncul di feed dan gallery, dan angka Post di profil ikut naik
+      qc.invalidateQueries({ queryKey: queryKeys.posts });
+      qc.invalidateQueries({ queryKey: queryKeys.me });
+    },
+    onError: (e) => toast.error(e.message),
+  });
+}
+
+export function useDeletePost() {
+  const qc = useQueryClient();
+  const inFlight = useRef(new Set<number>());
+
+  const mutation = useMutation({
+    mutationFn: (id: number) => postsApi.remove(id),
+
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: queryKeys.posts });
+      const snapshot = qc.getQueriesData({ queryKey: queryKeys.posts });
+      removePostFromLists(qc, id); // hilang dari semua daftar seketika
+      return { snapshot };
+    },
+
+    onError: (e, _id, ctx) => {
+      ctx?.snapshot.forEach(([key, data]) => qc.setQueryData(key, data));
+      toast.error(e.message);
+    },
+
+    onSuccess: (_data, id) => {
+      toast.success("Post deleted");
+      qc.removeQueries({ queryKey: queryKeys.postDetail(id) });
+      qc.removeQueries({ queryKey: queryKeys.comments(id) });
+    },
+
+    onSettled: (_data, _err, id) => {
+      inFlight.current.delete(id);
+      qc.invalidateQueries({ queryKey: queryKeys.posts });
+      qc.invalidateQueries({ queryKey: queryKeys.saved });
+      qc.invalidateQueries({ queryKey: queryKeys.me });
+    },
+  });
+
+  function remove(id: number) {
+    if (inFlight.current.has(id)) return; // klik beruntun diabaikan
+    inFlight.current.add(id);
+    mutation.mutate(id);
+  }
+
+  return { remove };
+}
+
+export function useMyLikes() {
+  const { isAuthenticated, isHydrated } = useIsAuthenticated();
+  return useInfiniteQuery({
+    queryKey: queryKeys.myLikes,
+    queryFn: ({ pageParam }) => postsApi.myLikes(pageParam),
+    initialPageParam: 1,
+    getNextPageParam: getNextPage,
+    enabled: isHydrated && isAuthenticated,
+  });
+}
+
+export function useUserLikes(username: string) {
+  return useInfiniteQuery({
+    queryKey: queryKeys.userLikes(username),
+    queryFn: ({ pageParam }) => postsApi.userLikes(username, pageParam),
+    initialPageParam: 1,
+    getNextPageParam: getNextPage,
+    enabled: username.length > 0,
+  });
 }

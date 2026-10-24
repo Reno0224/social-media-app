@@ -7,6 +7,8 @@ import type { Profile, ProfileStats } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "./user-avatar";
 import { EditProfileDialog } from "./edit-profile-dialog";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 interface ProfileHeaderProps {
   profile: Profile;
@@ -25,10 +27,10 @@ export function ProfileHeader({ profile, stats }: ProfileHeaderProps) {
     }
   }
 
-  const items = [
+  const items: { label: string; value: number; href?: string }[] = [
     { label: "Post", value: stats.posts },
-    { label: "Followers", value: stats.followers },
-    { label: "Following", value: stats.following },
+    { label: "Followers", value: stats.followers, href: "/me/followers" },
+    { label: "Following", value: stats.following, href: "/me/following" },
     { label: "Likes", value: stats.likes },
   ];
 
@@ -69,16 +71,30 @@ export function ProfileHeader({ profile, stats }: ProfileHeaderProps) {
 
       {profile.bio && <p className="text-md text-white">{profile.bio}</p>}
 
-      <div className="grid grid-cols-4 divide-x divide-neutral-900">
-        {items.map((s) => (
-          <div
-            key={s.label}
-            className="flex flex-col items-center gap-xxs px-md py-xs"
-          >
-            <p className="text-xl text-white font-bold">{s.value}</p>
-            <p className="text-md text-neutral-400 md:text-md">{s.label}</p>
-          </div>
-        ))}
+      <div className="grid grid-cols-4 divide-x divide-neutral-800">
+        {items.map((s) => {
+          const content = (
+            <>
+              <p className="text-xl font-bold">{s.value}</p>
+              <p className="text-sm text-neutral-400 md:text-md">{s.label}</p>
+            </>
+          );
+          const base = "flex flex-col items-center gap-xxs px-md py-xs";
+
+          return s.href ? (
+            <Link
+              key={s.label}
+              href={s.href}
+              className={cn(base, "rounded-md hover:bg-neutral-900/50")}
+            >
+              {content}
+            </Link>
+          ) : (
+            <div key={s.label} className={base}>
+              {content}
+            </div>
+          );
+        })}
       </div>
     </section>
   );

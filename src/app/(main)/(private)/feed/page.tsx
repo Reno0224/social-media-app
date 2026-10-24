@@ -16,6 +16,8 @@ import {
   ErrorState,
   PostCardSkeleton,
 } from "@/components/features/states";
+import { useState } from "react";
+import { PostDetailDialog } from "@/components/features/post-detail-dialog";
 
 export default function FeedPage() {
   const feed = useInfiniteFeed();
@@ -23,6 +25,7 @@ export default function FeedPage() {
   const { toggle: toggleSave } = useToggleSave();
   const { savedIds } = useSavedIds();
   const posts = flattenPosts(feed.data);
+  const [openPostId, setOpenPostId] = useState<number | null>(null);
 
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = feed;
   const sentinelRef = useLoadMore(
@@ -72,6 +75,7 @@ export default function FeedPage() {
           isSaved={savedIds.has(post.id)}
           onToggleLike={toggleLike}
           onToggleSave={(p) => toggleSave(p.id, savedIds.has(p.id))}
+          onOpenComments={(p) => setOpenPostId(p.id)}
         />
       ))}
 
@@ -83,6 +87,10 @@ export default function FeedPage() {
         />
       )}
       <div ref={sentinelRef} className="h-px" />
+      <PostDetailDialog
+        postId={openPostId}
+        onClose={() => setOpenPostId(null)}
+      />
     </div>
   );
 }
