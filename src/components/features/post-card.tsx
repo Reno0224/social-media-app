@@ -4,11 +4,14 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+// import { Bookmark, Heart, MessageSquareMore, Send } from "lucide-react";
+import { toast } from "sonner";
 import { timeAgo } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import type { Post } from "@/types/api";
 import { UserAvatar } from "./user-avatar";
 import { PostActions } from "./post-actions";
+import { Icon } from "@iconify/react";
 
 interface PostCardProps {
   post: Post;
@@ -35,7 +38,10 @@ export function PostCard({
   return (
     <article className="border-b border-neutral-900 pb-xl text-neutral-50">
       <header className="flex items-center gap-lg pb-lg pt-xl">
-        <Link href={profileHref} aria-label={`Open ${post.author.username}'s profile`}>
+        <Link
+          href={profileHref}
+          aria-label={`Open ${post.author.username}'s profile`}
+        >
           <UserAvatar
             name={post.author.name}
             avatarUrl={post.author.avatarUrl}
@@ -43,10 +49,17 @@ export function PostCard({
           />
         </Link>
         <div className="min-w-0">
-          <Link href={profileHref} className="block truncate text-md font-semibold">
+          <Link
+            href={profileHref}
+            className="block truncate text-md font-semibold"
+          >
             {post.author.username}
           </Link>
-          <time dateTime={post.createdAt} suppressHydrationWarning className="text-sm text-neutral-400">
+          <time
+            dateTime={post.createdAt}
+            suppressHydrationWarning
+            className="text-sm text-neutral-400"
+          >
             {timeAgo(post.createdAt)}
           </time>
         </div>

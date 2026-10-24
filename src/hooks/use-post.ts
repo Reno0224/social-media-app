@@ -137,7 +137,7 @@ export function useToggleLike() {
 
     onSettled: (_data, _err, vars) => {
       inFlight.current.delete(vars.id);
-      qc.invalidateQueries({ queryKey: queryKeys.posts });
+      qc.invalidateQueries({ queryKey: queryKeys.posts }); // samakan dengan server
     },
   });
 
