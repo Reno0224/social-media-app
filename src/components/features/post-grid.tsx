@@ -3,14 +3,20 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { flattenPosts, useSavedPosts, useUserPosts } from "@/hooks/use-post";
+import {
+  flattenPosts,
+  useMyLikes,
+  useSavedPosts,
+  useUserLikes,
+  useUserPosts,
+} from "@/hooks/use-post";
 import { useLoadMore } from "@/hooks/use-load-more";
 import { ErrorState } from "./states";
 
 interface GridItem {
   id: number;
   imageUrl: string | null;
-  caption: string;
+  caption: string | null;
 }
 
 interface ImageGridProps {
@@ -36,13 +42,19 @@ function ImageGrid({
   fetchNextPage,
   emptyState,
 }: ImageGridProps) {
-  const sentinelRef = useLoadMore(fetchNextPage, hasNextPage && !isFetchingNextPage);
+  const sentinelRef = useLoadMore(
+    fetchNextPage,
+    hasNextPage && !isFetchingNextPage,
+  );
 
   if (isLoading) {
     return (
       <div className="grid grid-cols-3 gap-1">
         {Array.from({ length: 9 }).map((_, i) => (
-          <div key={i} className="aspect-square animate-pulse rounded-md bg-neutral-800" />
+          <div
+            key={i}
+            className="aspect-square animate-pulse rounded-md bg-neutral-800"
+          />
         ))}
       </div>
     );
@@ -58,7 +70,7 @@ function ImageGrid({
           <Link
             key={post.id}
             href={`/posts/${post.id}`}
-            aria-label={post.caption.slice(0, 60) || "Open post"}
+            aria-label={post.caption?.slice(0, 60) || "Open post"}
             className="relative aspect-square overflow-hidden rounded-md bg-neutral-900"
           >
             {post.imageUrl && (
@@ -76,7 +88,10 @@ function ImageGrid({
       {isFetchingNextPage && (
         <div className="mt-1 grid grid-cols-3 gap-1">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="aspect-square animate-pulse rounded-md bg-neutral-800" />
+            <div
+              key={i}
+              className="aspect-square animate-pulse rounded-md bg-neutral-800"
+            />
           ))}
         </div>
       )}
@@ -108,8 +123,52 @@ export function UserPostsGrid({
   );
 }
 
-export function SavedPostsGrid({ emptyState }: { emptyState: React.ReactNode }) {
+export function SavedPostsGrid({
+  emptyState,
+}: {
+  emptyState: React.ReactNode;
+}) {
   const query = useSavedPosts();
+  return (
+    <ImageGrid
+      posts={flattenPosts(query.data)}
+      isLoading={query.isLoading}
+      isError={query.isError}
+      errorMessage={query.error?.message}
+      onRetry={() => query.refetch()}
+      hasNextPage={!!query.hasNextPage}
+      isFetchingNextPage={query.isFetchingNextPage}
+      fetchNextPage={() => query.fetchNextPage()}
+      emptyState={emptyState}
+    />
+  );
+}
+
+export function MyLikesGrid({ emptyState }: { emptyState: React.ReactNode }) {
+  const query = useMyLikes();
+  return (
+    <ImageGrid
+      posts={flattenPosts(query.data)}
+      isLoading={query.isLoading}
+      isError={query.isError}
+      errorMessage={query.error?.message}
+      onRetry={() => query.refetch()}
+      hasNextPage={!!query.hasNextPage}
+      isFetchingNextPage={query.isFetchingNextPage}
+      fetchNextPage={() => query.fetchNextPage()}
+      emptyState={emptyState}
+    />
+  );
+}
+
+export function UserLikesGrid({
+  username,
+  emptyState,
+}: {
+  username: string;
+  emptyState: React.ReactNode;
+}) {
+  const query = useUserLikes(username);
   return (
     <ImageGrid
       posts={flattenPosts(query.data)}

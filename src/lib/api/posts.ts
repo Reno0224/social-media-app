@@ -27,6 +27,8 @@ async function fetchSaved(page: number, limit = LIMIT): Promise<SavedPage> {
 }
 
 export const postsApi = {
+  get: (id: number) => api<Post>(`/api/posts/${id}`),
+
   feed: async (page: number): Promise<PostsPage> =>
     normalize(
       await api<RawPage<Post>>(`/api/feed?page=${page}&limit=${LIMIT}`),
@@ -62,4 +64,26 @@ export const postsApi = {
     api<unknown>(`/api/posts/${id}/save`, { method: "POST" }),
   unsave: (id: number) =>
     api<unknown>(`/api/posts/${id}/save`, { method: "DELETE" }),
+
+  create: (file: File, caption: string) => {
+    const body = new FormData();
+    body.append("image", file);
+    if (caption) body.append("caption", caption);
+    return api<Post>("/api/posts", { method: "POST", body });
+  },
+
+  remove: (id: number) =>
+    api<unknown>(`/api/posts/${id}`, { method: "DELETE" }),
+
+  myLikes: async (page: number): Promise<PostsPage> =>
+    normalize(
+      await api<RawPage<Post>>(`/api/me/likes?page=${page}&limit=${LIMIT}`),
+    ),
+
+  userLikes: async (username: string, page: number): Promise<PostsPage> =>
+    normalize(
+      await api<RawPage<Post>>(
+        `/api/users/${encodeURIComponent(username)}/likes?page=${page}&limit=${LIMIT}`,
+      ),
+    ),
 };

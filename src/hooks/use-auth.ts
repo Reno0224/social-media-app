@@ -1,12 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { authApi } from "@/lib/api/auth";
 import { authStorage } from "@/lib/auth-storage";
 import { useAppDispatch, useAppSelector } from "@/store/hook";
 import { clearToken, setToken } from "@/store/slices/auth-slice";
 import type { AuthData } from "@/types/api";
-
 
 function useAfterAuth() {
   const dispatch = useAppDispatch();
@@ -65,4 +64,18 @@ export function useLogout() {
 export function useIsAuthenticated() {
   const { token, isHydrated } = useAppSelector((s) => s.auth);
   return { isAuthenticated: !!token, isHydrated };
+}
+
+export function useRequireAuth() {
+  const { isAuthenticated } = useIsAuthenticated();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  return (action: () => void) => {
+    if (!isAuthenticated) {
+      router.push(`/login?returnTo=${encodeURIComponent(pathname)}`);
+      return;
+    }
+    action();
+  };
 }

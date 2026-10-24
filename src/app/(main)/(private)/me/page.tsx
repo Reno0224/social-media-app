@@ -2,7 +2,7 @@
 "use client";
 
 import { Bookmark, LayoutGrid } from "lucide-react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { useMe } from "@/hooks/use-me";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,9 +10,12 @@ import { EmptyState, ErrorState } from "@/components/features/states";
 import { ProfileHeader } from "@/components/features/profile-header";
 import { ProfileTabs } from "@/components/features/profile-tabs";
 import { UserPostsGrid, SavedPostsGrid } from "@/components/features/post-grid";
+import { useAppDispatch } from "@/store/hook";
+import { openCreatePost } from "@/store/slices/ui-slice";
 
 export default function MePage() {
   const { data, isLoading, isError, error, refetch } = useMe();
+  const dispatch = useAppDispatch();
 
   if (isLoading) {
     return (
@@ -52,9 +55,7 @@ export default function MePage() {
                     action={
                       <Button
                         className="mt-xl h-10 w-64.75 rounded-full bg-primary-300 text-md font-semibold text-white hover:bg-primary-200 md:h-12"
-                        onClick={() =>
-                          toast.info("Create post comes in a later step")
-                        }
+                        onClick={() => dispatch(openCreatePost())}
                       >
                         Upload My First Post
                       </Button>

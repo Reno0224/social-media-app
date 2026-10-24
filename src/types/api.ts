@@ -53,7 +53,7 @@ export interface PostAuthor {
 export interface Post {
   id: number;
   imageUrl: string;
-  caption: string;
+  caption: string | null;
   createdAt: string;
   author: PostAuthor;
   likeCount: number;
@@ -76,11 +76,50 @@ export interface PostsPage {
 export interface SavedPost {
   id: number;
   imageUrl: string | null;
-  caption: string;
+  caption: string | null;
   createdAt: string;
 }
 
 export interface SavedPage {
   posts: SavedPost[];
   pagination: Pagination;
+}
+
+export interface PostComment {
+  id: number;
+  text: string;
+  createdAt: string;
+  author: PostAuthor;
+  isMine?: boolean;
+}
+
+export interface CommentsPage {
+  comments: PostComment[];
+  pagination: Pagination;
+}
+
+export interface UserSummary {
+  id: number;
+  username: string;
+  name: string;
+  avatarUrl: string | null;
+  isFollowedByMe?: boolean;
+  isMe?: boolean;
+  followsMe: boolean;
+}
+
+export interface UsersPage {
+  users: UserSummary[];
+  pagination: Pagination;
+}
+
+export interface PublicProfile {
+  id: number;
+  name: string;
+  username: string;
+  bio: string | null;
+  avatarUrl: string | null;
+  counts: { post: number; followers: number; following: number; likes: number };
+  isFollowing: boolean;
+  isMe: boolean;
 }
