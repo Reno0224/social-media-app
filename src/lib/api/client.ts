@@ -21,14 +21,22 @@ export async function api<T>(
   const token = authStorage.get();
   const isFormData = options.body instanceof FormData;
 
-  const res = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      ...(isFormData ? {} : { "Content-Type": "application/json" }),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      headers: {
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      },
+    });
+  } catch {
+    throw new ApiError(
+      "Network error. Check your connection and try again.",
+      0,
+    );
+  }
 
   const json = (await res.json().catch(() => null)) as ApiResponse<T> | null;
 

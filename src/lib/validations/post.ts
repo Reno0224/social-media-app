@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB (tebakan, sesuaikan dengan Swagger)
+export const MAX_IMAGE_SIZE = 25 * 1024 * 1024; // 5 MB (tebakan, sesuaikan dengan Swagger)
 
 export const createPostSchema = z.object({
   caption: z
@@ -16,3 +16,4 @@ export function validateImageFile(file: File): string | null {
   if (file.size > MAX_IMAGE_SIZE) return "Image must be 5 MB or smaller";
   return null;
 }
+

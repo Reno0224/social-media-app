@@ -50,7 +50,7 @@ export default function PublicProfilePage() {
 
   return (
     <div className="mx-auto w-full max-w-[812px] space-y-3xl md:pt-xl">
-      <PublicProfileHeader profile={profile} />
+      <PublicProfileHeader key={profile.username} profile={profile} />
 
       <ProfileTabs
         tabs={[
