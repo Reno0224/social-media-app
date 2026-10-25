@@ -6,7 +6,7 @@ import { meApi } from "@/lib/api/me";
 import { queryKeys } from "@/lib/query-key";
 import { useIsAuthenticated } from "./use-auth";
 import { MeData } from "@/types/api";
-import { profile } from "console";
+import type { UpdateProfileInput } from "@/lib/validations/profile";
 
 export function useMe() {
   const { isAuthenticated, isHydrated } = useIsAuthenticated();
@@ -19,9 +19,12 @@ export function useMe() {
 
 export function useUpdateMe() {
   const qc = useQueryClient();
+
   return useMutation({
-    mutationFn: meApi.update,
-    onMutate: async (input) => {
+    mutationFn: ({ input, avatar }: { input: UpdateProfileInput; avatar?: File | null }) =>
+      meApi.update(input, avatar),
+
+    onMutate: async ({ input }) => {
       await qc.cancelQueries({ queryKey: queryKeys.me });
       const previous = qc.getQueryData<MeData>(queryKeys.me);
       if (previous) {
@@ -32,11 +35,17 @@ export function useUpdateMe() {
       }
       return { previous };
     },
-    onError: (e, _input, ctx) => {
+
+    onError: (e, _vars, ctx) => {
       if (ctx?.previous) qc.setQueryData(queryKeys.me, ctx.previous);
       toast.error(e.message);
     },
-    onSuccess: () => toast.success("Profile Update"),
-    onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.me }),
+
+    onSuccess: () => toast.success("Profile updated"),
+
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.me });
+      qc.invalidateQueries({ queryKey: queryKeys.posts }); // foto dan nama penulis di kartu ikut baru
+    },
   });
 }

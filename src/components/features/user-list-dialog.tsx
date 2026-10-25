@@ -1,3 +1,4 @@
+// src/components/features/user-list-dialog.tsx
 "use client";
 
 import type { UserListSource } from "@/hooks/use-users";
@@ -31,12 +32,13 @@ export function UserListDialog({
       <DialogContent
         aria-describedby={undefined}
         style={{ width: "min(440px, calc(100vw - 2rem))", maxWidth: "none" }}
-        className="max-h-[80dvh] gap-xl rounded-2xl border-neutral-800 bg-neutral-950 p-3xl text-neutral-50"
+        className="flex max-h-[80dvh] flex-col gap-xl rounded-2xl border-neutral-800 bg-neutral-950 p-3xl text-neutral-50"
       >
-        <DialogHeader>
+        <DialogHeader className="shrink-0">
           <DialogTitle className="text-lg font-bold">{title}</DialogTitle>
         </DialogHeader>
-        <div className="min-h-0 overflow-y-auto">
+
+        <div className="min-h-0 flex-1 overflow-y-auto">
           {open && (
             <UserList
               source={source}
