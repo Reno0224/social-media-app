@@ -13,12 +13,15 @@ import { Button } from "@/components/ui/button";
 import type { PostComment } from "@/types/api";
 import { UserAvatar } from "./user-avatar";
 import { EmptyState, ErrorState } from "./states";
+import { useMe } from "@/hooks/use-me";
 
 function CommentItem({
   comment,
+  isMine,
   onDelete,
 }: {
   comment: PostComment;
+  isMine: boolean;
   onDelete: (id: number) => void;
 }) {
   const pending = comment.id < 0; // komentar sementara, belum dikonfirmasi server
@@ -53,7 +56,7 @@ function CommentItem({
           </time>
         </div>
 
-        {comment.isMine && !pending && (
+        {isMine && !pending && (
           <button
             type="button"
             onClick={() => onDelete(comment.id)}
@@ -64,7 +67,9 @@ function CommentItem({
           </button>
         )}
       </div>
-      <p className="whitespace-pre-line break-words text-sm">{comment.text}</p>
+      <p className="whitespace-pre-line wrap-break-words text-sm">
+        {comment.text}
+      </p>
     </li>
   );
 }
@@ -79,6 +84,9 @@ export function CommentList({ postId }: { postId: number }) {
   } = query;
   const { remove } = useDeleteComment(postId);
   const comments = flattenComments(query.data);
+  const { data: me } = useMe();
+  const isMine = (c: PostComment) =>
+    c.isMine ?? (!!me && me.profile.username === c.author.username);
 
   if (query.isLoading) {
     return (
@@ -119,7 +127,12 @@ export function CommentList({ postId }: { postId: number }) {
     <>
       <ul className="divide-y divide-neutral-900">
         {comments.map((c) => (
-          <CommentItem key={c.id} comment={c} onDelete={remove} />
+          <CommentItem
+            key={c.id}
+            comment={c}
+            isMine={isMine(c)}
+            onDelete={remove}
+          />
         ))}
       </ul>
 
