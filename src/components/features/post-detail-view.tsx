@@ -19,6 +19,9 @@ import { CommentList } from "./comment-list";
 import { CommentComposer } from "./comment-composer";
 import { EmptyState, ErrorState } from "./states";
 import { PostMenu } from "./post-menu";
+import { useEffect } from "react";
+import { track } from "@/lib/analytics";
+
 
 interface PostDetailViewProps {
   postId: number;
@@ -31,6 +34,10 @@ export function PostDetailView({ postId , onDeleted} : PostDetailViewProps) {
   const { toggle: toggleSave } = useToggleSave();
   const { savedIds } = useSavedIds();
   const requireAuth = useRequireAuth();
+  const viewedId = query.data?.id
+  useEffect (() => {
+    if (viewedId) track ("view_post" , {postId: viewedId})
+  }, [viewedId])
 
   const notFound =
     !Number.isInteger(postId) ||
