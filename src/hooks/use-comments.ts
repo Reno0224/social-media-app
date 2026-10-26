@@ -12,8 +12,9 @@ import { toast } from "sonner";
 import { commentsApi } from "@/lib/api/comments";
 import { queryKeys } from "@/lib/query-key";
 import { useMe } from "@/hooks/use-me";
-import { patchPost } from "@/hooks/use-post"
+import { patchPost } from "@/hooks/use-post";
 import type { CommentsPage, PostComment } from "@/types/api";
+import { track } from "@/lib/analytics";
 
 export function useComments(postId: number) {
   return useInfiniteQuery({
@@ -30,7 +31,9 @@ export function useComments(postId: number) {
 }
 
 /** Gabungkan semua halaman dan buang duplikat berdasarkan id. */
-export function flattenComments(data?: InfiniteData<CommentsPage>): PostComment[] {
+export function flattenComments(
+  data?: InfiniteData<CommentsPage>,
+): PostComment[] {
   if (!data) return [];
   const seen = new Set<number>();
   const result: PostComment[] = [];
@@ -52,11 +55,12 @@ export function useAddComment(postId: number) {
     mutationFn: (text: string) => commentsApi.add(postId, text),
 
     onMutate: async (text) => {
+      track("submit_comment", { postId });
       await qc.cancelQueries({ queryKey: queryKeys.comments(postId) });
       await qc.cancelQueries({ queryKey: queryKeys.posts });
 
       const prevComments = qc.getQueryData<InfiniteData<CommentsPage>>(
-        queryKeys.comments(postId)
+        queryKeys.comments(postId),
       );
       const prevPosts = qc.getQueriesData({ queryKey: queryKeys.posts });
 
@@ -72,25 +76,34 @@ export function useAddComment(postId: number) {
             name: me.profile.name,
             avatarUrl: me.profile.avatarUrl,
           },
-          isMine:true
+          isMine: true,
         };
 
-        qc.setQueryData<InfiniteData<CommentsPage>>(queryKeys.comments(postId), (old) => {
-          if (!old || old.pages.length === 0) return old;
-          const [first, ...rest] = old.pages;
-          return {
-            ...old,
-            pages: [
-              {
-                ...first,
-                comments: [temp, ...first.comments],
-                pagination: { ...first.pagination, total: first.pagination.total + 1 },
-              },
-              ...rest,
-            ],
-          };
-        });
-        patchPost(qc, postId, (p) => ({ ...p, commentCount: p.commentCount + 1 }));
+        qc.setQueryData<InfiniteData<CommentsPage>>(
+          queryKeys.comments(postId),
+          (old) => {
+            if (!old || old.pages.length === 0) return old;
+            const [first, ...rest] = old.pages;
+            return {
+              ...old,
+              pages: [
+                {
+                  ...first,
+                  comments: [temp, ...first.comments],
+                  pagination: {
+                    ...first.pagination,
+                    total: first.pagination.total + 1,
+                  },
+                },
+                ...rest,
+              ],
+            };
+          },
+        );
+        patchPost(qc, postId, (p) => ({
+          ...p,
+          commentCount: p.commentCount + 1,
+        }));
       }
 
       return { prevComments, prevPosts };
@@ -123,24 +136,27 @@ export function useDeleteComment(postId: number) {
       await qc.cancelQueries({ queryKey: queryKeys.posts });
 
       const prevComments = qc.getQueryData<InfiniteData<CommentsPage>>(
-        queryKeys.comments(postId)
+        queryKeys.comments(postId),
       );
       const prevPosts = qc.getQueriesData({ queryKey: queryKeys.posts });
 
-      qc.setQueryData<InfiniteData<CommentsPage>>(queryKeys.comments(postId), (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          pages: old.pages.map((page) => ({
-            ...page,
-            comments: (page.comments ?? []).filter((c) => c.id !== commentId),
-            pagination: {
-              ...page.pagination,
-              total: Math.max(0, page.pagination.total - 1),
-            },
-          })),
-        };
-      });
+      qc.setQueryData<InfiniteData<CommentsPage>>(
+        queryKeys.comments(postId),
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              comments: (page.comments ?? []).filter((c) => c.id !== commentId),
+              pagination: {
+                ...page.pagination,
+                total: Math.max(0, page.pagination.total - 1),
+              },
+            })),
+          };
+        },
+      );
       patchPost(qc, postId, (p) => ({
         ...p,
         commentCount: Math.max(0, p.commentCount - 1),

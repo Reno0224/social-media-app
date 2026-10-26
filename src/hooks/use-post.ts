@@ -15,6 +15,7 @@ import { postsApi } from "@/lib/api/posts";
 import { queryKeys } from "@/lib/query-key";
 import { useIsAuthenticated } from "@/hooks/use-auth";
 import type { Pagination, Post, PostsPage } from "@/types/api";
+import { track } from "@/lib/analytics";
 
 function getNextPage(last: { pagination: Pagination }) {
   const p = last?.pagination;
@@ -144,6 +145,7 @@ export function useToggleLike() {
   function toggle(post: Post) {
     if (inFlight.current.has(post.id)) return;
     inFlight.current.add(post.id);
+    track(post.likedByMe ? "unlike_post" : "like_post" , {postId: post.id})
     mutation.mutate({ id: post.id, like: !post.likedByMe });
   }
 
@@ -183,6 +185,7 @@ export function useToggleSave() {
   function toggle(postId: number, isSaved: boolean) {
     if (inFlight.current.has(postId)) return;
     inFlight.current.add(postId);
+    track(isSaved ? "unsave_post" : "save_post" , {postId})
     mutation.mutate({ id: postId, save: !isSaved });
   }
 

@@ -15,6 +15,9 @@ import { usersApi } from "@/lib/api/users";
 import { queryKeys } from "@/lib/query-key";
 import { useIsAuthenticated } from "@/hooks/use-auth";
 import type { Pagination, PublicProfile, UserSummary, UsersPage } from "@/types/api";
+import { track } from "@/lib/analytics";
+
+
 
 function nextPage(last: { pagination: Pagination }) {
   const p = last?.pagination;
@@ -178,6 +181,7 @@ export function useToggleFollow() {
   function toggle(username: string, isFollowing: boolean) {
     if (inFlight.current.has(username)) return; // klik beruntun diabaikan
     inFlight.current.add(username);
+    track(isFollowing ? "unfollow_user" : "follow_user" , {username})
     mutation.mutate({ username, follow: !isFollowing });
   }
 
