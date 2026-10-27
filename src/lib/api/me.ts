@@ -18,7 +18,7 @@ export const meApi = {
       return api<unknown>("/api/me", { method: "PATCH", body });
     }
     return api<unknown>("/api/me", {
-      method: "PATCh",
+      method: "PATCH",
       body: JSON.stringify(input),
     });
   },
