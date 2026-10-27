@@ -12,7 +12,7 @@ export class ApiError extends Error {
   }
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 export async function api<T>(
   path: string,
@@ -21,9 +21,11 @@ export async function api<T>(
   const token = authStorage.get();
   const isFormData = options.body instanceof FormData;
 
+  const base = BASE_URL;
+
   let res: Response;
   try {
-    res = await fetch(`${BASE_URL}${path}`, {
+    res = await fetch(`${base}${path}`, {
       ...options,
       headers: {
         ...(isFormData ? {} : { "Content-Type": "application/json" }),
@@ -31,9 +33,16 @@ export async function api<T>(
         ...options.headers,
       },
     });
-  } catch {
+  } catch (error) {
+    console.error(
+      "[api] request failed:",
+      `${options.method ?? "GET"} ${path}`,
+      error,
+    );
     throw new ApiError(
-      "Network error. Check your connection and try again.",
+      typeof navigator !== "undefined" && !navigator.onLine
+        ? "You appear to be offline. Check your connection and try again."
+        : "Could not reach the server. Please try again.",
       0,
     );
   }
@@ -41,7 +50,7 @@ export async function api<T>(
   const json = (await res.json().catch(() => null)) as ApiResponse<T> | null;
 
   if (!res.ok || json?.success === false) {
-    throw new ApiError(json?.message ?? "Something went Wrong", res.status);
+    throw new ApiError(json?.message ?? "Something went wrong", res.status);
   }
 
   return json!.data;
